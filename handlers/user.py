@@ -35,6 +35,14 @@ class VolunteerStates(StatesGroup):
     email = State()
     photo = State()
 
+class ToTeamStates(StatesGroup):
+    fio = State()
+    telephone = State()
+    date_of_birthday = State()
+    education = State()
+    profession = State()
+    email = State()
+    photo = State()
 
 # @dp.message_handler(commands=["start"])
 async def start_registration(message: types.Message) -> None:
@@ -256,8 +264,74 @@ async def get_photoV(message: types.Message, state: FSMContext) -> None:
 
     state.finish()
 
+# Хочу в команду
 
+# @dp.message_handler(Text(equals='Хочу в команду'))
+async def to_team(message: types.Message) -> None:
+    await message.reply(text='Введите ваши ФИО', reply_markup=kb_user.cancle_keyboard())
+    await ToTeamStates.fio.set()
+
+# @dp.message_handler(state=ToTeamStates.fio)
+async def get_fio_team(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['fio'] = message.text
+    await ToTeamStates.next() 
+    await message.reply('Напишите ваш телефон', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=ToTeamStates.telephone)
+async def get_telephone_team(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['telephone'] = message.text
+    await ToTeamStates.next() 
+    await message.reply('Напишите вашу дату рождения', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=ToTeamStates.date_of_birthday)
+async def get_date_of_birthday_team(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['date_of_birthday'] = message.text
+    await ToTeamStates.next() 
+    await message.reply('Напишите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=ToTeamStates.education)
+async def get_education_team(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['education'] = message.text
+    await ToTeamStates.next() 
+    await message.reply('Напишите свою специальность', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=ToTeamStates.profession)
+async def get_profession_team(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['profession'] = message.text
+    await ToTeamStates.next() 
+    await message.reply('Напишите свой email', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=ToTeamStates.email)
+async def get_email_team(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['email'] = message.text
+    await ToTeamStates.next() 
+    await message.reply('Отправьте аватарку', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(lambda message: not message.photo, state=ToTeamStates.photo)
+async def check_photo_team(message: types.Message):
+    return await message.reply('Это не фотография!')
+
+# @dp.message_handler(lambda message: message.photo, content_types=['photo'], state=ToTeamStates.photo)
+async def get_photo_team(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['photo'] = message.photo[0].file_id
+    await message.answer('Ваши данные сохранены')
+
+    async with state.proxy() as data:
+        await bot.send_photo(chat_id=message.from_user.id,
+                            photo=data['photo'],
+                            caption=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+
+    state.finish()
+    
 def register_handlers_user(dp: dispatcher):
+    #Киберспортивная команда
     dp.register_message_handler(start_registration, commands=["start"])
     dp.register_message_handler(choose, Text(equals='Регистрация'))
     dp.register_message_handler(cyber, Text(equals='Киберспортивная команда'))
@@ -279,6 +353,7 @@ def register_handlers_user(dp: dispatcher):
     dp.register_message_handler(get_profession, state=ClientStates.profession)
     dp.register_message_handler(check_photo_stud, lambda message: not message.photo, state=ClientStates.student_ID_card)
     dp.register_message_handler(get_student_ID_card, lambda message: message.photo, content_types=['photo'], state=ClientStates.student_ID_card)
+    #Волонтер
     dp.register_message_handler(volunteer, Text(equals='Волонтер'))
     dp.register_message_handler(get_fioV, state=VolunteerStates.fio)
     dp.register_message_handler(get_telephoneV, state=VolunteerStates.telephone)
@@ -288,6 +363,15 @@ def register_handlers_user(dp: dispatcher):
     dp.register_message_handler(get_email, state=VolunteerStates.email)
     dp.register_message_handler(check_photo_studV, lambda message: not message.photo, state=VolunteerStates.photo)
     dp.register_message_handler(get_photoV, lambda message: message.photo, content_types=['photo'], state=VolunteerStates.photo)
-
+    #Хочу в команду
+    dp.register_message_handler(volunteer, Text(equals='Хочу в команду'))
+    dp.register_message_handler(get_fio_team, state=ToTeamStates.fio)
+    dp.register_message_handler(get_telephone_team, state=ToTeamStates.telephone)
+    dp.register_message_handler(get_date_of_birthday_team, state=ToTeamStates.date_of_birthday)
+    dp.register_message_handler(get_education_team, state=ToTeamStates.education)
+    dp.register_message_handler(get_profession_team, state=ToTeamStates.profession)
+    dp.register_message_handler(get_email_team, state=ToTeamStates.email)
+    dp.register_message_handler(check_photo_team, lambda message: not message.photo, state=ToTeamStates.photo)
+    dp.register_message_handler(get_photo_team, lambda message: message.photo, content_types=['photo'], state=ToTeamStates.photo)
     
 
