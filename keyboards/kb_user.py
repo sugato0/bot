@@ -17,5 +17,5 @@ def games_keyboard() -> ReplyKeyboardMarkup:
 
 def cancle_keyboard() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(KeyboardButton('Отмена'))
+    kb.add(KeyboardButton('Вернуться обратно'))
     return kb
