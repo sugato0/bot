@@ -4,6 +4,9 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from keyboards import kb_user
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
+from lib import handler
+import re 
 
 START_TEXT = """
 <b>Вас приветсвует Телеграм Бот PRACTICE</b>
@@ -101,9 +104,88 @@ async def get_subject(message: types.Message, state: FSMContext) -> None:
 async def get_team_name(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['team_name'] = message.text
-    
+
     await ClientStates.next()
-    await message.reply('Введите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    await message.answer('Выберите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+
+d = [["БФУ","КГТУ","КМРК","ПСТ","БИТ","КСТ","КИТиС","КБК"], 
+    ["TOP","РАНХиГС","КП","БГА","РУК","МФЮА","СПБГУ МВД"]]
+
+# @dp.message_handler(state=ClientStates.team_name)
+# async def get_education(message: types.Message, state: FSMContext):
+#     markup = types.InlineKeyboardMarkup()
+#     markup.row_width = 1
+#     button_list = [types.InlineKeyboardButton(text=x, callback_data=x) for x in d[0]]
+#     markup.add(*button_list)
+#     markup.row(InlineKeyboardButton("Далее", callback_data="next:0"))
+#     await message.answer('Выберите своё учебное заведение', reply_markup=markup)
+    
+# @dp.callback_query_handler(text_startswith="prev", state=ClientStates.education)
+# async def prev_page(call: types.CallbackQuery):
+#     await call.answer()
+#     try:
+#         data = int(call.data.split(":")[1]) - 1
+#         if data == 0:
+#             markup = types.InlineKeyboardMarkup()
+#             markup.row_width = 1
+#             button_list = [types.InlineKeyboardButton(text=x, callback_data=x) for x in d[0]]
+#             markup.add(*button_list)
+#             markup.row(InlineKeyboardButton("Далее", callback_data="next:0"))
+#             await call.message.edit_text("Выберите своё учебное заведение", reply_markup=markup)
+#         else:
+#             markup = types.InlineKeyboardMarkup()
+#             markup.row_width = 1
+#             button_list = [types.InlineKeyboardButton(text=x, callback_data=x) for x in d[data]]
+#             markup.add(*button_list)
+#             markup.row(InlineKeyboardButton("Назад", callback_data=f"prev:{data}"), InlineKeyboardButton("Далее", callback_data=f"next:{data}"))
+
+#             await call.message.edit_text("Выберите своё учебное заведение", reply_markup=markup)
+#     except IndexError:
+#         data = 0
+#         markup = types.InlineKeyboardMarkup()
+#         markup.row_width = 1
+#         button_list = [types.InlineKeyboardButton(text=x, callback_data=x) for x in d[data]]
+#         markup.add(*button_list)
+#         markup.row(InlineKeyboardButton("Далее", callback_data=f"next:{data}"))
+
+#         await call.message.edit_text("Выберите своё учебное заведение", reply_markup=markup)
+    
+#     await ClientStates.education.set()
+
+# @dp.callback_query_handler(text_startswith="next", state=ClientStates.education)
+# async def next_page(call: types.CallbackQuery):
+#     await call.answer()
+#     data = int(call.data.split(":")[1]) + 1
+#     last_index = len(d) - 1 
+#     try:
+#         if data == last_index:
+#             markup = types.InlineKeyboardMarkup()
+#             markup.row_width = 1
+#             button_list = [types.InlineKeyboardButton(text=x, callback_data=x) for x in d[data]]
+#             markup.add(*button_list)
+#             markup.row(InlineKeyboardButton("Назад", callback_data=f"prev:3"))
+
+#             await call.message.edit_text("Выберите своё учебное заведение", reply_markup=markup)
+#         else:
+#             markup = types.InlineKeyboardMarkup()
+#             markup.row_width = 1
+#             button_list = [types.InlineKeyboardButton(text=x, callback_data=x) for x in d[data]]
+#             markup.add(*button_list)
+#             markup.row(InlineKeyboardButton("Назад", callback_data=f"prev:{data}"), InlineKeyboardButton("Далее", callback_data=f"next:{data}"))
+
+#             await call.message.edit_text("Выберите своё учебное заведение", reply_markup=markup)
+#         print(data)
+#     except IndexError:
+#         data = 0
+#         markup = types.InlineKeyboardMarkup()
+#         markup.row_width = 1
+#         button_list = [types.InlineKeyboardButton(text=x, callback_data=x) for x in d[data]]
+#         markup.add(*button_list)
+#         markup.row(InlineKeyboardButton("Назад", callback_data=f"prev:{data}"), InlineKeyboardButton("Далее", callback_data=f"next:{data}"))
+
+#         await call.message.edit_text("Выберите своё учебное заведение", reply_markup=markup)
+
+#     await ClientStates.education.set()
 
 
 # @dp.message_handler(state=ClientStates.education)
@@ -142,59 +224,75 @@ async def get_fio(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['fio'] = message.text
     await ClientStates.next() 
-    await message.reply('Напишите свой номер телефона', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш номер телефона', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=ClientStates.telephone)
 async def get_telephone(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['telephone'] = message.text
-    await ClientStates.next() 
-    await message.reply('Напишите вашу дату рождения', reply_markup=kb_user.cancle_keyboard())
+    phone = await handler.is_int_phone(message.text)
+    if phone == True:
+        async with state.proxy() as data:
+            data['telephone'] = message.text
+        await ClientStates.next() 
+        await message.reply('Введите вашу дату рождения.\n<b>Формат: DD.MM.YYYY</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+    else:
+        await message.reply('Неверный ввод')
 
 # @dp.message_handler(state=ClientStates.date_of_birthday)
 async def get_date_of_birthday(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['date_of_birthday'] = message.text
-    await ClientStates.next() 
-    await message.reply('Напишите свой игровой никнейм', reply_markup=kb_user.cancle_keyboard())
+    date = await handler.is_valid_date(message.text)
+    if date == True:
+        async with state.proxy() as data:
+            data['date_of_birthday'] = message.text
+        await ClientStates.next() 
+        await message.reply('Введите ваш игровой никнейм', reply_markup=kb_user.cancle_keyboard())
+    else: 
+        await message.reply('Неверный ввод.\n<b>Формат: DD.MM.YYYY</b>',reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=ClientStates.nickname)
 async def get_nickname(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['nickname'] = message.text
     await ClientStates.next() 
-    await message.reply('Напишите свой рейтинг в игре', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш рейтинг в игре', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=ClientStates.rating)
 async def get_rating(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['rating'] = message.text
     await ClientStates.next() 
-    await message.reply('Отправьте ссылку на ваш профиль steam', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Отправьте ссылку на ваш профиль steam.\n<b>Формат: httрs://steamcommunity.com/id/<u>"ваш steam-id"</u>/</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=ClientStates.steam)
 async def get_steam(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['steam'] = message.text
-    await ClientStates.next() 
-    await message.reply('Отправьте ваш дискорд (пример: practice#1234)', reply_markup=kb_user.cancle_keyboard())
+    steam = await handler.is_steam_link(message.text)
+    if steam == True:
+        async with state.proxy() as data:
+            data['steam'] = message.text
+        await ClientStates.next() 
+        await message.reply('Отправьте ваш дискорд.\n<b>Формат: practice#1234</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: httрs://steamcommunity.com/id/<u>"ваш steam-id"</u>/</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=ClientStates.discord)
 async def get_discord(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['discord'] = message.text
-    await ClientStates.next() 
-    await message.reply('Напишите вашу специальность', reply_markup=kb_user.cancle_keyboard())
+    discord = await handler.is_valid_discord(message.text)
+    if discord == True:
+        async with state.proxy() as data:
+            data['discord'] = message.text
+        await ClientStates.next() 
+        await message.reply('Введите вашу специальность', reply_markup=kb_user.cancle_keyboard())
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: practice#1234</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=ClientStates.profession)
 async def get_profession(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['profession'] = message.text
-    await message.answer('Ваши данные сохранены')
+    await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
     await bot.send_message(chat_id=message.from_user.id, 
                         text=f"Название команды: {data['team_name']}\nДисциплина: {data['subject']}\nУчебное заведение: {data['education']}\nФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nНикнейм: {data['nickname']}\nРейтинг: {data['rating']}\nSteam: {data['steam']}\nDiscord: {data['discord']}\nСпециальность: {data['profession']}")
 
-    state.finish()
+    await state.finish()
 # @dp.message_handler(lambda message: not message.photo, state=ClientStates.student_ID_card)
 # async def check_photo_stud(message: types.Message):
 #     return await message.reply('Это не фотография!')
@@ -229,45 +327,57 @@ async def get_fioV(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['fio'] = message.text
     await VolunteerStates.next() 
-    await message.reply('Напишите ваш телефон', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш телефон', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=VolunteerStates.telephone)
 async def get_telephoneV(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['telephone'] = message.text
-    await VolunteerStates.next() 
-    await message.reply('Напишите вашу дату рождения', reply_markup=kb_user.cancle_keyboard())
+    phone = await handler.is_int_phone(message.text)
+    if phone == True:
+        async with state.proxy() as data:
+            data['telephone'] = message.text
+        await VolunteerStates.next() 
+        await message.reply('Введите вашу дату рождения.\n<b>Формат: DD.MM.YYYY</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+    else:
+        await message.reply('Неверный ввод')
 
 # @dp.message_handler(state=VolunteerStates.date_of_birthday)
 async def get_date_of_birthdayV(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['date_of_birthday'] = message.text
-    await VolunteerStates.next() 
-    await message.reply('Напишите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    date = await handler.is_valid_date(message.text)
+    if date == True:
+        async with state.proxy() as data:
+            data['date_of_birthday'] = message.text
+        await VolunteerStates.next() 
+        await message.reply('Введите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: DD.MM.YYYY</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=VolunteerStates.education)
 async def get_educationV(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['education'] = message.text
     await VolunteerStates.next() 
-    await message.reply('Напишите свою специальность', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите вашу специальность', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=VolunteerStates.profession)
 async def get_professionV(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['profession'] = message.text
     await VolunteerStates.next() 
-    await message.reply('Напишите свой email', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш email.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=VolunteerStates.email)
 async def get_email(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['email'] = message.text
-    async with state.proxy() as data:
-        await bot.send_message(chat_id=message.from_user.id,
-                            text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
-    state.finish()
-    await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+    check = await handler.is_valid_email(message.text)
+    if check == True:
+        async with state.proxy() as data:
+            data['email'] = message.text
+        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+        async with state.proxy() as data:
+            await bot.send_message(chat_id=message.from_user.id,
+                                text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+        await state.finish()
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(lambda message: not message.photo, state=VolunteerStates.student_ID_card)
 # async def check_photo_studV(message: types.Message):
@@ -298,46 +408,58 @@ async def get_fio_team(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['fio'] = message.text
     await ToTeamStates.next() 
-    await message.reply('Напишите ваш телефон', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш телефон', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=ToTeamStates.telephone)
 async def get_telephone_team(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['telephone'] = message.text
-    await ToTeamStates.next() 
-    await message.reply('Напишите вашу дату рождения', reply_markup=kb_user.cancle_keyboard())
+    phone = await handler.is_int_phone(message.text)
+    if phone == True:
+        async with state.proxy() as data:
+            data['telephone'] = message.text
+        await ToTeamStates.next() 
+        await message.reply('Введите вашу дату рождения.\n<b>Формат: DD.MM.YYYY</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+    else:
+        await message.reply('Неверный ввод')
 
 # @dp.message_handler(state=ToTeamStates.date_of_birthday)
 async def get_date_of_birthday_team(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['date_of_birthday'] = message.text
-    await ToTeamStates.next() 
-    await message.reply('Напишите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    date = await handler.is_valid_date(message.text)
+    if date == True:
+        async with state.proxy() as data:
+            data['date_of_birthday'] = message.text
+        await ToTeamStates.next() 
+        await message.reply('Введите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: DD.MM.YYYY</b>',reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=ToTeamStates.education)
 async def get_education_team(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['education'] = message.text
     await ToTeamStates.next() 
-    await message.reply('Напишите свою специальность', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите вашу специальность', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=ToTeamStates.profession)
 async def get_profession_team(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['profession'] = message.text
     await ToTeamStates.next() 
-    await message.reply('Напишите свой email', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш email.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=ToTeamStates.email)
 async def get_email_team(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['email'] = message.text
-    await message.answer('Ваши данные сохранены')
-    async with state.proxy() as data:
-            await bot.send_message(chat_id=message.from_user.id,
-                                text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+    check = await handler.is_valid_email(message.text)
+    if check == True:
+        async with state.proxy() as data:
+            data['email'] = message.text
+        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+        async with state.proxy() as data:
+                await bot.send_message(chat_id=message.from_user.id,
+                                    text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
 
-    state.finish()
+        await state.finish()
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(lambda message: not message.photo, state=ToTeamStates.photo)
 # async def check_photo_team(message: types.Message):
@@ -367,46 +489,58 @@ async def get_fio_event(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['fio'] = message.text
     await EventStates.next() 
-    await message.reply('Напишите ваш телефон', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш телефон', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=EventStates.telephone)
 async def get_telephone_event(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['telephone'] = message.text
-    await EventStates.next() 
-    await message.reply('Напишите вашу дату рождения', reply_markup=kb_user.cancle_keyboard())
+    phone = await handler.is_int_phone(message.text)
+    if phone == True:
+        async with state.proxy() as data:
+            data['telephone'] = message.text
+        await EventStates.next() 
+        await message.reply('Введите вашу дату рождения.\n<b>Формат: DD.MM.YYYY</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+    else:
+        await message.reply('Неверный ввод')
 
 # @dp.message_handler(state=EventStates.date_of_birthday)
 async def get_date_of_birthday_event(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['date_of_birthday'] = message.text
-    await EventStates.next() 
-    await message.reply('Напишите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    date = await handler.is_valid_date(message.text)
+    if date == True:
+        async with state.proxy() as data:
+            data['date_of_birthday'] = message.text
+        await EventStates.next() 
+        await message.reply('Введите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: DD.MM.YYYY</b>',reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=EventStates.education)
 async def get_education_event(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['education'] = message.text
     await EventStates.next() 
-    await message.reply('Напишите свою специальность', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите вашу специальность', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=EventStates.profession)
 async def get_profession_event(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['profession'] = message.text
     await EventStates.next() 
-    await message.reply('Напишите свой email', reply_markup=kb_user.cancle_keyboard())
+    await message.reply('Введите ваш email.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=EventStates.email)
 async def get_email_event(message: types.Message, state: FSMContext) -> None:
-    async with state.proxy() as data:
-        data['email'] = message.text
-    await message.answer('Ваши данные сохранены')
-    async with state.proxy() as data:
-        await bot.send_message(chat_id=message.from_user.id,
-                            text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
-
-    state.finish()
+    check = await handler.is_valid_email(message.text)
+    if check == True:
+        async with state.proxy() as data:
+            data['email'] = message.text
+        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+        async with state.proxy() as data:
+            await bot.send_message(chat_id=message.from_user.id,
+                                text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+        await state.finish()
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+        
 
 
 def register_handlers_user(dp: dispatcher):
