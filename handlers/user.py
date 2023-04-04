@@ -7,7 +7,7 @@ from keyboards import kb_user
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from lib import handler
 import re 
-
+import pandas as pd
 START_TEXT = """
 <b>Вас приветсвует Телеграм Бот PRACTICE</b>
 Начиная работу с ботом, <b>ВЫ даете согалсие на обработку персональных данных</b>
@@ -291,7 +291,31 @@ async def get_profession(message: types.Message, state: FSMContext) -> None:
     await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
     await bot.send_message(chat_id=message.from_user.id, 
                         text=f"Название команды: {data['team_name']}\nДисциплина: {data['subject']}\nУчебное заведение: {data['education']}\nФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nНикнейм: {data['nickname']}\nРейтинг: {data['rating']}\nSteam: {data['steam']}\nDiscord: {data['discord']}\nСпециальность: {data['profession']}")
-
+    df = pd.DataFrame(list(zip(["Cybersport"],
+                       [data['team_name']],
+                        [data['subject']],
+                        [data['education']],
+                         [data['fio']],
+                         [data['telephone']],
+                         [data['date_of_birthday']],
+                         [data['nickname']],
+                        [data['rating']],
+                        [data['steam']],
+                         [data['discord']],
+                         [data['profession']])),columns=["type",
+                                                        'team_name',
+                                                        'subject',
+                                                        'education',
+                                                        'fio',
+                                                        'telephone',
+                                                        'date_of_birthday',
+                                                        'nickname',
+                                                        'rating',
+                                                        'steam',
+                                                        'discord',
+                                                        'profession'
+                                                        ])
+    df.to_csv("bot\sheetForNewGamers.csv",mode='a',index=False,header=False,encoding=('cp1251'))
     await state.finish()
 # @dp.message_handler(lambda message: not message.photo, state=ClientStates.student_ID_card)
 # async def check_photo_stud(message: types.Message):
@@ -375,6 +399,24 @@ async def get_email(message: types.Message, state: FSMContext) -> None:
         async with state.proxy() as data:
             await bot.send_message(chat_id=message.from_user.id,
                                 text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+        df = pd.DataFrame(list(zip(["Volunteer"],
+                        [data['education']],
+                         [data['fio']],
+                         [data['telephone']],
+                         [data['date_of_birthday']],
+                         
+                        
+                        
+                         [data['email']]
+                         [data['profession']])),columns=["type",
+                                                        'education',
+                                                        'fio',
+                                                        'telephone',
+                                                        'date_of_birthday',
+                                                        'email',
+                                                        'profession'
+                                                        ])
+        df.to_csv("bot\sheetForNewVolounteers.csv",mode='a',index=False,header=False,encoding=('cp1251'))
         await state.finish()
     else:
         await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
@@ -457,6 +499,24 @@ async def get_email_team(message: types.Message, state: FSMContext) -> None:
                 await bot.send_message(chat_id=message.from_user.id,
                                     text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
 
+        df = pd.DataFrame(list(zip(["Volunteer"],
+                        [data['education']],
+                         [data['fio']],
+                         [data['telephone']],
+                         [data['date_of_birthday']],
+                         
+                        
+                        
+                         [data['email']]
+                         [data['profession']])),columns=["type",
+                                                        'education',
+                                                        'fio',
+                                                        'telephone',
+                                                        'date_of_birthday',
+                                                        'email',
+                                                        'profession'
+                                                        ])
+        df.to_csv("bot\sheetForNewUsers.csv",mode='a',index=False,header=False,encoding=('cp1251'))
         await state.finish()
     else:
         await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
