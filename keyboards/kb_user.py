@@ -10,6 +10,11 @@ def choose_keyboard() -> ReplyKeyboardMarkup:
     kb.add(KeyboardButton('Киберспортивная команда'), KeyboardButton('Волонтер')).add(KeyboardButton('Зарегистрироваться на мероприятии')).add(KeyboardButton('Хочу в команду'))
     return kb
 
+def event_keyboard() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.add(KeyboardButton('Интенсив ПРАКТИС'), KeyboardButton('КОД ИБ + ПРАКТИС')).add(KeyboardButton('Ярмарка стартапов'))
+    return kb
+
 def games_keyboard() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add(KeyboardButton('CS:GO')).add(KeyboardButton('DOTA 2'))

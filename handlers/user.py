@@ -60,6 +60,24 @@ class EventStates(StatesGroup):
     email = State()
     # photo = State()
 
+class EventStates2(StatesGroup):
+    fio = State()
+    telephone = State()
+    date_of_birthday = State()
+    education = State()
+    profession = State()
+    email = State()
+    # photo = State()
+    
+class EventStates3(StatesGroup):
+    fio = State()
+    telephone = State()
+    date_of_birthday = State()
+    education = State()
+    profession = State()
+    email = State()
+    # photo = State()
+
 # @dp.message_handler(commands=["start"])
 async def start_registration(message: types.Message) -> None:
     await bot.send_photo(chat_id=message.from_user.id, 
@@ -480,19 +498,24 @@ async def get_email_team(message: types.Message, state: FSMContext) -> None:
 
 #Мероприятие
 # @dp.message_handler(Text(equals='Зарегистрироваться на мероприятии'))
-async def event(message: types.Message) -> None:
+async def get_event(message: types.Message) -> None:
+    await message.reply(text='Выберите мероприятие', reply_markup=kb_user.event_keyboard())
+
+# Интенсив ПРАКТИС
+
+async def event1(message: types.Message) -> None:
     await message.reply(text='Введите ваши ФИО', reply_markup=kb_user.cancle_keyboard())
     await EventStates.fio.set()
 
 # @dp.message_handler(state=EventStates.fio)
-async def get_fio_event(message: types.Message, state: FSMContext) -> None:
+async def get_fio_event1(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['fio'] = message.text
     await EventStates.next() 
     await message.reply('Введите ваш телефон', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=EventStates.telephone)
-async def get_telephone_event(message: types.Message, state: FSMContext) -> None:
+async def get_telephone_event1(message: types.Message, state: FSMContext) -> None:
     phone = await handler.is_int_phone(message.text)
     if phone == True:
         async with state.proxy() as data:
@@ -503,7 +526,7 @@ async def get_telephone_event(message: types.Message, state: FSMContext) -> None
         await message.reply('Неверный ввод')
 
 # @dp.message_handler(state=EventStates.date_of_birthday)
-async def get_date_of_birthday_event(message: types.Message, state: FSMContext) -> None:
+async def get_date_of_birthday_event1(message: types.Message, state: FSMContext) -> None:
     date = await handler.is_valid_date(message.text)
     if date == True:
         async with state.proxy() as data:
@@ -514,21 +537,21 @@ async def get_date_of_birthday_event(message: types.Message, state: FSMContext) 
         await message.reply('Неверный ввод.\n<b>Формат: DD.MM.YYYY</b>',reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=EventStates.education)
-async def get_education_event(message: types.Message, state: FSMContext) -> None:
+async def get_education_event1(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['education'] = message.text
     await EventStates.next() 
     await message.reply('Введите вашу специальность', reply_markup=kb_user.cancle_keyboard())
 
 # @dp.message_handler(state=EventStates.profession)
-async def get_profession_event(message: types.Message, state: FSMContext) -> None:
+async def get_profession_event1(message: types.Message, state: FSMContext) -> None:
     async with state.proxy() as data:
         data['profession'] = message.text
     await EventStates.next() 
     await message.reply('Введите ваш email.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 # @dp.message_handler(state=EventStates.email)
-async def get_email_event(message: types.Message, state: FSMContext) -> None:
+async def get_email_event1(message: types.Message, state: FSMContext) -> None:
     check = await handler.is_valid_email(message.text)
     if check == True:
         async with state.proxy() as data:
@@ -540,7 +563,131 @@ async def get_email_event(message: types.Message, state: FSMContext) -> None:
         await state.finish()
     else:
         await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
-        
+
+
+#КОД ИБ + ПРАКТИС 
+async def event2(message: types.Message) -> None:
+    await message.reply(text='Введите ваши ФИО', reply_markup=kb_user.cancle_keyboard())
+    await EventStates2.fio.set()
+
+# @dp.message_handler(state=EventStates.fio)
+async def get_fio_event2(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['fio'] = message.text
+    await EventStates2.next() 
+    await message.reply('Введите ваш телефон', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=EventStates.telephone)
+async def get_telephone_event2(message: types.Message, state: FSMContext) -> None:
+    phone = await handler.is_int_phone(message.text)
+    if phone == True:
+        async with state.proxy() as data:
+            data['telephone'] = message.text
+        await EventStates2.next() 
+        await message.reply('Введите вашу дату рождения.\n<b>Формат: DD.MM.YYYY</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+    else:
+        await message.reply('Неверный ввод')
+
+# @dp.message_handler(state=EventStates.date_of_birthday)
+async def get_date_of_birthday_event2(message: types.Message, state: FSMContext) -> None:
+    date = await handler.is_valid_date(message.text)
+    if date == True:
+        async with state.proxy() as data:
+            data['date_of_birthday'] = message.text
+        await EventStates2.next() 
+        await message.reply('Введите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: DD.MM.YYYY</b>',reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+
+# @dp.message_handler(state=EventStates.education)
+async def get_education_event2(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['education'] = message.text
+    await EventStates2.next() 
+    await message.reply('Введите вашу специальность', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=EventStates.profession)
+async def get_profession_event2(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['profession'] = message.text
+    await EventStates2.next() 
+    await message.reply('Введите ваш email.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+
+# @dp.message_handler(state=EventStates.email)
+async def get_email_event2(message: types.Message, state: FSMContext) -> None:
+    check = await handler.is_valid_email(message.text)
+    if check == True:
+        async with state.proxy() as data:
+            data['email'] = message.text
+        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+        async with state.proxy() as data:
+            await bot.send_message(chat_id=message.from_user.id,
+                                text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+        await state.finish()
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+
+#Ярмарка стартапов
+async def event3(message: types.Message) -> None:
+    await message.reply(text='Введите ваши ФИО', reply_markup=kb_user.cancle_keyboard())
+    await EventStates3.fio.set()
+
+# @dp.message_handler(state=EventStates.fio)
+async def get_fio_event3(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['fio'] = message.text
+    await EventStates3.next() 
+    await message.reply('Введите ваш телефон', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=EventStates.telephone)
+async def get_telephone_event3(message: types.Message, state: FSMContext) -> None:
+    phone = await handler.is_int_phone(message.text)
+    if phone == True:
+        async with state.proxy() as data:
+            data['telephone'] = message.text
+        await EventStates3.next() 
+        await message.reply('Введите вашу дату рождения.\n<b>Формат: DD.MM.YYYY</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+    else:
+        await message.reply('Неверный ввод')
+
+# @dp.message_handler(state=EventStates.date_of_birthday)
+async def get_date_of_birthday_event3(message: types.Message, state: FSMContext) -> None:
+    date = await handler.is_valid_date(message.text)
+    if date == True:
+        async with state.proxy() as data:
+            data['date_of_birthday'] = message.text
+        await EventStates3.next() 
+        await message.reply('Введите ваше учебное заведение', reply_markup=kb_user.cancle_keyboard())
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: DD.MM.YYYY</b>',reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+
+# @dp.message_handler(state=EventStates.education)
+async def get_education_event3(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['education'] = message.text
+    await EventStates3.next() 
+    await message.reply('Введите вашу специальность', reply_markup=kb_user.cancle_keyboard())
+
+# @dp.message_handler(state=EventStates.profession)
+async def get_profession_event3(message: types.Message, state: FSMContext) -> None:
+    async with state.proxy() as data:
+        data['profession'] = message.text
+    await EventStates3.next() 
+    await message.reply('Введите ваш email.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
+
+# @dp.message_handler(state=EventStates.email)
+async def get_email_event3(message: types.Message, state: FSMContext) -> None:
+    check = await handler.is_valid_email(message.text)
+    if check == True:
+        async with state.proxy() as data:
+            data['email'] = message.text
+        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+        async with state.proxy() as data:
+            await bot.send_message(chat_id=message.from_user.id,
+                                text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+        await state.finish()
+    else:
+        await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
 
 
 def register_handlers_user(dp: dispatcher):
@@ -564,6 +711,7 @@ def register_handlers_user(dp: dispatcher):
     dp.register_message_handler(get_steam, state=ClientStates.steam)
     dp.register_message_handler(get_discord, state=ClientStates.discord)
     dp.register_message_handler(get_profession, state=ClientStates.profession)
+
         #dp.register_message_handler(check_photo_stud, lambda message: not message.photo, state=ClientStates.student_ID_card)
         #dp.register_message_handler(get_student_ID_card, lambda message: message.photo, content_types=['photo'], state=ClientStates.student_ID_card)
     #Волонтер
@@ -586,13 +734,31 @@ def register_handlers_user(dp: dispatcher):
     dp.register_message_handler(get_email_team, state=ToTeamStates.email)
         #dp.register_message_handler(check_photo_team, lambda message: not message.photo, state=ToTeamStates.photo)
         #dp.register_message_handler(get_photo_team, lambda message: message.photo, content_types=['photo'], state=ToTeamStates.photo)
-    #Мероприятие
-    dp.register_message_handler(event, Text(equals='Зарегистрироваться на мероприятии'))
-    dp.register_message_handler(get_fio_event, state=EventStates.fio)
-    dp.register_message_handler(get_telephone_event, state=EventStates.telephone)
-    dp.register_message_handler(get_date_of_birthday_event, state=EventStates.date_of_birthday)
-    dp.register_message_handler(get_education_event, state=EventStates.education)
-    dp.register_message_handler(get_profession_event, state=EventStates.profession)
-    dp.register_message_handler(get_email_event, state=EventStates.email)
+    dp.register_message_handler(get_event, Text(equals='Зарегистрироваться на мероприятии'))
+    #Мероприятие Интенсив ПРАКТИС
+    dp.register_message_handler(event1, Text(equals='Интенсив ПРАКТИС'))
+    dp.register_message_handler(get_fio_event1, state=EventStates.fio)
+    dp.register_message_handler(get_telephone_event1, state=EventStates.telephone)
+    dp.register_message_handler(get_date_of_birthday_event1, state=EventStates.date_of_birthday)
+    dp.register_message_handler(get_education_event1, state=EventStates.education)
+    dp.register_message_handler(get_profession_event1, state=EventStates.profession)
+    dp.register_message_handler(get_email_event1, state=EventStates.email)
+    #Мероприятие КОД ИБ + ПРАКТИС
+    dp.register_message_handler(event2, Text(equals='КОД ИБ + ПРАКТИС'))
+    dp.register_message_handler(get_fio_event2, state=EventStates2.fio)
+    dp.register_message_handler(get_telephone_event2, state=EventStates2.telephone)
+    dp.register_message_handler(get_date_of_birthday_event2, state=EventStates2.date_of_birthday)
+    dp.register_message_handler(get_education_event2, state=EventStates2.education)
+    dp.register_message_handler(get_profession_event2, state=EventStates2.profession)
+    dp.register_message_handler(get_email_event2, state=EventStates2.email)
+    #Мероприятие Ярмарка стартапов
+    dp.register_message_handler(event3, Text(equals='Ярмарка стартапов'))
+    dp.register_message_handler(get_fio_event3, state=EventStates3.fio)
+    dp.register_message_handler(get_telephone_event3, state=EventStates3.telephone)
+    dp.register_message_handler(get_date_of_birthday_event3, state=EventStates3.date_of_birthday)
+    dp.register_message_handler(get_education_event3, state=EventStates3.education)
+    dp.register_message_handler(get_profession_event3, state=EventStates3.profession)
+    dp.register_message_handler(get_email_event3, state=EventStates3.email)
+
     
 
