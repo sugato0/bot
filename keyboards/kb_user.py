@@ -7,7 +7,7 @@ def get_keyboard() -> ReplyKeyboardMarkup:
 
 def choose_keyboard() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add(KeyboardButton('Киберспортивная команда'), KeyboardButton('Волонтер')).add(KeyboardButton('Зарегистрироваться на мероприятии')).add(KeyboardButton('Хочу в команду'))
+    kb.add(KeyboardButton('Геймер'), KeyboardButton('Пользователь'), KeyboardButton('Волонтер')).add(KeyboardButton('Зарегистрироваться на мероприятии'))
     return kb
 
 def event_keyboard() -> ReplyKeyboardMarkup:
