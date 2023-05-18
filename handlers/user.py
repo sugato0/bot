@@ -4,6 +4,8 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from keyboards import kb_user
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from lib import handler
 import re 
@@ -16,6 +18,18 @@ START_TEXT = """
 CANCLE_TEXT = """
 Чтобы начать регистрацию нажмите кнопку - <b>"Регистрация"</b>
 """
+scope = [
+'https://www.googleapis.com/auth/spreadsheets',
+'https://www.googleapis.com/auth/drive'
+]
+creds = ServiceAccountCredentials.from_json_keyfile_name("bot\practice-386921-509b771b164d.json",scope)
+
+client = gspread.authorize(creds)
+
+GamerSheet = client.open("PracticeData").get_worksheet(0)
+UserSheet = client.open("PracticeData").get_worksheet(1)
+VolounteerSheet = client.open("PracticeData").get_worksheet(2)
+
 
 class ClientStates(StatesGroup):
     person = State()
@@ -105,13 +119,31 @@ async def get_email(message: types.Message, state: FSMContext) -> None:
     if check == True:
         async with state.proxy() as data:
             data['email'] = message.text
-        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
-        async with state.proxy() as data:
-            await bot.send_message(chat_id=message.from_user.id,
-                                text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+            
     else:
         await message.reply('Неверный ввод.\n<b>Формат: practice@gmail.com</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
     if data['person'] != 'Геймер':
+        
+        
+        await bot.send_message(chat_id=message.from_user.id,
+                                text=f"ФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nУчебное учреждение: {data['education']}\nСпециальность: {data['profession']}\nЭл. почта: {data['email']}")
+        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+
+        df = [data["person"],
+                       
+                         data['fio'],
+                         data['telephone'],
+                         data['date_of_birthday'],
+                         data['education'],
+                        data['email'],
+                         data['profession']]
+        
+        if data["person"] == "Пользователь":
+            UserSheet.insert_row(df)
+        else:
+            
+            VolounteerSheet.insert_row(df)
+        
         await state.finish()
     else:
         await ClientStates.next()  
@@ -156,10 +188,24 @@ async def get_discord(message: types.Message, state: FSMContext) -> None:
     if discord == True:
         async with state.proxy() as data:
             data['discord'] = message.text
-        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
+        
         await bot.send_message(chat_id=message.from_user.id, 
                             text=f"Название команды: {data['team_name']}\nДисциплина: {data['subject']}\nУчебное заведение: {data['education']}\nФИО: {data['fio']}\nТелефон: {data['telephone']}\nДата рождения: {data['date_of_birthday']}\nНикнейм: {data['nickname']}\nРейтинг: {data['rating']}\nSteam: {data['steam']}\nDiscord: {data['discord']}\nСпециальность: {data['profession']}")
 
+        df = ["Геймер",
+                       data['team_name'],
+                        data['subject'],
+                        data['education'],
+                         data['fio'],
+                         data['telephone'],
+                         data['date_of_birthday'],
+                         data['nickname'],
+                        data['rating'],
+                        data['steam'],
+                         data['discord'],
+                         data['profession']]
+        GamerSheet.insert_row(df)
+        await message.answer('Ваши данные сохранены', reply_markup=kb_user.cancle_keyboard())
         await state.finish()
     else:
         await message.reply('Неверный ввод.\n<b>Формат: practice#1234</b>', reply_markup=kb_user.cancle_keyboard(), parse_mode='HTML')
