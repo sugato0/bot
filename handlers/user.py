@@ -1,4 +1,6 @@
+import random
 from aiogram import types, dispatcher
+import requests
 from create_bot import dp, bot
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
@@ -48,6 +50,7 @@ class ClientStates(StatesGroup):
     event = State()
 
 async def start_registration(message: types.Message) -> None:
+
     await bot.send_photo(chat_id=message.from_user.id, 
                         photo='https://i.imgur.com/o7sOfGx.png', 
                         caption=START_TEXT, 
@@ -55,9 +58,67 @@ async def start_registration(message: types.Message) -> None:
                         reply_markup=kb_user.get_keyboard())
 
 async def choose(message: types.Message) -> None:
-    await message.reply(text="Выберите тип регистрации", 
-                        reply_markup=kb_user.choose_keyboard())
-    await ClientStates.person.set()
+    if message.text == "Регистрация":
+        await message.reply(text="Выберите тип регистрации",
+                            
+                            reply_markup=kb_user.choose_keyboard())
+        await ClientStates.person.set()
+    else:
+        dataes = {
+        
+        "email": "hello@gmail.com",
+        "username": message.from_user.first_name,
+        "password": str(random.randrange(1000000,1000000000)+message.from_user.id),
+        "repeat_password": str(random.randrange(1000000,1000000000+message.from_user.id)),
+        "id":message.from_user.id
+        }
+
+        url = "http://127.0.0.1:8000/user/registr/"
+
+        tt = requests.post(url=url,data=dataes)
+    
+        await message.answer(text="Вы были зарегестрированы")
+        
+        await message.reply(text="Кнопка отправки запроса",
+                            
+                            reply_markup=kb_user.main_line())
+        
+        
+
+class SomeState(StatesGroup):
+    some = State()
+
+async def send_liner(message: types.Message)->None:
+
+    await message.reply(text="Введите текст")
+        
+    await SomeState.some.set()
+
+async def end_sendline(message: types.Message, state: FSMContext) -> None:
+    
+    async with state.proxy() as data:
+        dataes = {
+    
+        "id_someUser":message.from_user.id,
+        "someData":message.text
+
+        }
+
+        url = "http://127.0.0.1:8000/user/someData/"
+
+        requests.post(url=url,data=dataes)
+        
+        await message.answer(text="Ура")
+        
+    await state.finish()
+    
+   
+
+
+
+
+
+
 
 async def reg(message: types.Message) -> None:
     await message.reply(text="Нажмите кнопку 'Регистрация'", 
@@ -242,12 +303,22 @@ async def get_discord(message: types.Message, state: FSMContext) -> None:
 
 def register_handlers_user(dp: dispatcher):
     dp.register_message_handler(start_registration, commands=["start"])
-    dp.register_message_handler(choose, Text(equals='Регистрация'))
+
+    dp.register_message_handler(send_liner, Text(equals="Отправить"))
+    dp.register_message_handler(end_sendline, state=SomeState.some)
+
+    dp.register_message_handler(choose, Text(equals=['Регистрация',"Главная страница"]))
+
+
     dp.register_message_handler(cancle, Text(equals='Вернуться обратно'), state='*')
     # dp.register_message_handler(choose_events, Text(equals='Зарегистрироваться на мероприятии'))
     # dp.register_message_handler(events, Text(['Интенсив ПРАКТИС', 'КОД ИБ + ПРАКТИС', 'Ярмарка стартапов']), state=ClientStates.event)
     dp.register_message_handler(get_person, Text(['Геймер', 'Пользователь', 'Волонтер']), state=ClientStates.person)
     dp.register_message_handler(get_fio, state=ClientStates.fio)
+
+    
+
+
     dp.register_message_handler(get_telephone, state=ClientStates.telephone)
     dp.register_message_handler(get_date_of_birthday, state=ClientStates.date_of_birthday)
     dp.register_message_handler(get_education, state=ClientStates.education)

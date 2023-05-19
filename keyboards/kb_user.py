@@ -3,8 +3,14 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemo
 def get_keyboard() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add(KeyboardButton('Регистрация'))
+    kb.add(KeyboardButton('Главная страница'))
     return kb
 
+def main_line() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.add('Отправить')
+
+    return kb
 def choose_keyboard() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add(KeyboardButton('Геймер'), KeyboardButton('Пользователь'), KeyboardButton('Волонтер')).add(KeyboardButton('Зарегистрироваться на мероприятии'))
